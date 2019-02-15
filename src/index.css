@@ -6,9 +6,26 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color:grey
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+.my-stock-div{
+  height: 275px;
+}
+
+.slick-next:before, .slick-prev:before {
+  color: #111111 !important;
+}
+
+.slick-prev {
+  left: -5% !important;
+  z-index: 1;
+}
+.slick-next {
+  right: -5% !important;
+  z-index: 1;
 }
