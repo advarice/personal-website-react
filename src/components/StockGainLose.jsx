@@ -24,24 +24,12 @@ class StockGainLose extends Component {
 
 
     componentDidMount() {
-        const data =axios.get('http://api.yaofengc.com/testStartEndAdjusted')
+        const data =axios.get('http://localhost:5000/testStartEndAdjusted')
             .then(response=>{
                 this.setState({stockEndAdjusted:response.data})
             });
     }
 
-/*    handleClose(event) {
-
-        this.setState({ show: false });
-    }*/
-
-/*    handleShow(event) {
-        console.log(event.target);
-        this.setState({
-            modal_title:event.target
-        })
-        this.setState({ show: true });
-    }*/
     showModalRef =({handleShow})=>{
         this.showModal=handleShow;
     }
@@ -51,21 +39,18 @@ class StockGainLose extends Component {
     }
 
     handleShow(stock) {
-        let url='http://api.yaofengc.com/testNews/stock%20'+stock.stockSymbol;
+        let url='http://localhost:5000/testNews/stock%20'+stock.stockSymbol;
         //console.log(url)
         let newsData =axios.get(url)
             .then(response=>{
-/*                let articles=[]
-                for(let i=0;i<3;i++){
-                    if(i+1<=response.data.totalResults){
-                        articles[i]=response.data[i].title;
-                    }
-                }*/
                 this.setState({modal_article: response.data})
-                //console.log(this.state.modal_article)
             });
-        //console.log(stock);
-        //console.log(newsData)
+        let urlPerfoamnce='http://localhost:5000/getStockPerformance/'+stock.stockSymbol;
+        let performanceData=axios.get(urlPerfoamnce)
+            .then(response=>{
+                this.setState({modal_performance:response.data})
+                console.log(this.state.modal_performance)
+            });
 
         this.setState({ show: true, modal_title:stock.stockSymbol});
     }
@@ -81,6 +66,108 @@ class StockGainLose extends Component {
                 <br/>
             </div>
         )
+    }
+
+    renderModalStockPerformance=(props)=>{
+        if(this.state.modal_performance==null){
+            return null;
+        }
+        return(
+            <div>
+                <div>
+                    <h4>Stock Information</h4>
+                    <div className="row">
+                        <div className="col">
+                            <small className="font-weight-bold">Company Name: {this.state.modal_performance.stockEntity.name}</small>
+                        </div>
+
+                    </div>
+                    <div className="row">
+                        <div className="col">
+                            <small className="font-weight-bold">Sector: {this.state.modal_performance.stockEntity.sector}</small>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col">
+                            <small className="font-weight-bold">Industry: {this.state.modal_performance.stockEntity.industry}</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><small class="font-weight-bold">Current price: {this.state.modal_performance.currentClose}</small></div>
+                        <div class="col"><small class="font-weight-bold">Current Volume: {this.state.modal_performance.currentVolume}</small></div>
+                    </div>
+                    <div className="row">
+                        <div className="col"><small>Last 7 days average price: {this.state.modal_performance.day7AvgClose.toFixed(2)}</small></div>
+                        <div className="col"><small>Last 7 days average volume: {this.state.modal_performance.day7AvgVolume.toFixed(0)}</small></div>
+                    </div>
+                    <div class="row">
+                        <div className="col"><small>Last 30 days average price: {this.state.modal_performance.day30AvgClose.toFixed(2)}</small></div>
+                        <div className="col"><small>Last 30 days average volume: {this.state.modal_performance.day30AvgVolume.toFixed(0)}</small></div>
+                    </div>
+                    <div class="row">
+                        <div className="col"><small>Last 60 days average price: {this.state.modal_performance.day60AvgClose.toFixed(2)}</small></div>
+                        <div className="col"><small>Last 60 days average volume: {this.state.modal_performance.day60AvgVolume.toFixed(0)}</small></div>
+                    </div>
+                    <div class="row">
+                        <div className="col"><small>Last 90 days average price: {this.state.modal_performance.day90AvgClose.toFixed(2)}</small></div>
+                        <div className="col"><small>Last 90 days average volume: {this.state.modal_performance.day90AvgVolume.toFixed(0)}</small></div>
+                    </div>
+                </div>
+                {this.renderSummary()}
+            </div>
+        )
+    }
+
+    renderSummary=(props)=>{
+        let recentVolumeChange;
+        let recentPriceChange;
+        let getPriceChangeStatus=(change)=>{
+            if(Math.abs(change)>5){
+                return 'Abnormal'
+            }
+            else{
+                return 'Normal'
+            }
+        }
+        let getVolumeChangeStatus=(change)=>{
+            if(Math.abs(change)>80){
+                return 'Abnormal'
+            }
+            else{
+                return 'Normal'
+            }
+        }
+
+        if(this.state.modal_performance.currentClose>this.state.modal_performance.day7AvgClose){
+            recentPriceChange=((this.state.modal_performance.currentClose-this.state.modal_performance.day7AvgClose)/this.state.modal_performance.day7AvgClose*100).toFixed(2)
+        }
+        else{
+            recentPriceChange=((this.state.modal_performance.day7AvgClose-this.state.modal_performance.currentClose)/this.state.modal_performance.day7AvgClose*100).toFixed(2)*-1
+        }
+
+        if(this.state.modal_performance.currentVolume>this.state.modal_performance.day7AvgVolume){
+            recentVolumeChange=((this.state.modal_performance.currentVolume-this.state.modal_performance.day7AvgVolume)/this.state.modal_performance.day7AvgVolume*100).toFixed(2)
+        }
+        else{
+            recentVolumeChange=((this.state.modal_performance.day7AvgVolume-this.state.modal_performance.currentVolume)/this.state.modal_performance.day7AvgVolume*100).toFixed(2)*-1
+        }
+
+        console.log(recentPriceChange)
+        return(
+            <div>
+                <h4>Summary</h4>
+                <div class="row">
+                    <div class="col">Recent 7 days Stock Price Movement: {recentPriceChange+'%'}</div>
+                    <div class="col">Status: {getPriceChangeStatus(recentPriceChange)}</div>
+                </div>
+                <br/>
+                <div className="row">
+                    <div className="col">Recent 7 days Stock Volume Movement: {recentVolumeChange + '%'}</div>
+                    <div className="col">Status: {getVolumeChangeStatus(recentVolumeChange)}</div>
+                </div>
+            </div>
+        )
+
     }
 
     render() {
@@ -134,10 +221,16 @@ class StockGainLose extends Component {
                             <Modal.Title>{this.state.modal_title}</Modal.Title>
                         </Modal.Header>
                                 <Modal.Body>
+                                    <h4>Relevant news</h4>
                                     {this.renderModalArticle(0)}
                                     {this.renderModalArticle(1)}
                                     {this.renderModalArticle(2)}
                                 </Modal.Body>
+                                <hr/>
+                                <Modal.Body>
+                                    {this.renderModalStockPerformance()}
+                                </Modal.Body>
+
                         <Modal.Footer>
                         </Modal.Footer>
                     </Modal>
